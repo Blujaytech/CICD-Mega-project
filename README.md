@@ -154,7 +154,97 @@ sudo yum -y install trivy
 http: <PlubicIP:8080> ---Jenkins-server
 http: <PlubicIP:9000> ---SonarQube
 ```
+# aws-eksctl-Installation
 
+IAM ROLE also Create for EKS-Cluster creation. 
+------------------------------kubectl------------------------------
+
+```
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+  chmod +x kubectl
+   mv kubectl /usr/local/bin/
+   kubectl version --client
+```
+-------------------------eksctl------------------------------------
+```
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+   mv /tmp/eksctl /usr/local/bin
+   eksctl version
+   eksctl create cluster --name blujay-cluster --region us-east-1 --nodegroup-name demo-nodes --node-type t3.small --nodes 2
+   eksctl delete cluster --name blujay-cluster --region us-east-1
+   kubectl get nodes
+```
+# Jenkins and k8s Authendication
+1. Check Current Permissions
+Commands.
+
+```
+kubectl auth can-i --list \
+--as=system:serviceaccount:dev:jenkins
+```
+
+```
+kubectl auth can-i → Checks what actions a user or service account is allowed to perform.
+--list → Displays all permissions available.
+--as=system:serviceaccount:dev:jenkins → Tests permissions of the jenkins service account in the dev namespace.
+```
+
+2. Create jenkins-cluster-admin.yaml
+
+```   
+vi jenkins-cluster-admin.yaml
+```
+``` 
+YAML File
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: jenkins-cluster-admin
+
+subjects:
+- kind: ServiceAccount
+  name: jenkins
+  namespace: dev
+
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+  ```
+
+3. Apply the YAML File
+Command
+
+```
+kubectl apply -f jenkins-cluster-admin.yaml
+```
+
+4. Verify Full Access
+Command
+
+```
+kubectl auth can-i '*' '*' \
+--as=system:serviceaccount:dev:jenkins
+```
+
+5. Verify Access to CRDs
+Command
+```
+kubectl auth can-i get crd \
+--as=system:serviceaccount:dev:jenkins
+```
+
+Solution 2: Install cert-manager Outside Jenkins
+
+```
+
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.yaml
+```
+```
+kubectl get pods -n cert-manager
+```
 # Jenkins-Plugin
 
 ```
