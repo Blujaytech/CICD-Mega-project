@@ -176,6 +176,9 @@ curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/d
    eksctl create cluster --name blujay-cluster --region us-east-1 --nodegroup-name demo-nodes --node-type t3.small --nodes 2
    eksctl delete cluster --name blujay-cluster --region us-east-1
    kubectl get nodes
+   kubectl apply -f deployment.yaml
+   kubectl get pods -n dev
+   kubectl get svc -n dev
 ```
 # Jenkins and k8s Authendication
 1. Check Current Permissions
